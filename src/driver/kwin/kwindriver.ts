@@ -68,8 +68,11 @@ class KWinDriver implements IDriverContext {
 
   public set currentWindow(window: WindowClass | null) {
     if (window !== null) {
-      window.timestamp = new Date().getTime();
       this.workspace.activeWindow = (window.window as KWinWindow).window;
+      // Focus shortcuts run inside enter(). Their synchronous activation signal
+      // is skipped by its reentrancy guard, so remember successful focus here.
+      if (this.workspace.activeWindow === (window.window as KWinWindow).window)
+        this.control.onWindowFocused(this, window);
     }
   }
 
