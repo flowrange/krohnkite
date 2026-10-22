@@ -1,13 +1,20 @@
 {
-  "include": ["src/"],
-  "exclude": ["*.*", "pkg/"],
+  "include": [
+    "src/"
+  ],
+  "exclude": [
+    "*.*",
+    "pkg/"
+  ],
   "compileOnSave": true,
   "compilerOptions": {
     "target": "es6",
     "outFile": "krohnkite.js",
-    "noEmitOnError": false,
+    "noEmitOnError": true,
     "removeComments": true,
-    "lib": ["es6"],
+    "lib": [
+      "es6"
+    ],
     "alwaysStrict": true,
     "strict": true
   }

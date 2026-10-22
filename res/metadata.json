@@ -1,20 +1,23 @@
 {
   "KPackageStructure": "KWin/Script",
   "KPlugin": {
-    "Name": "Krohnkite",
-    "Description": "A dynamic tiling script for KWin ($REV)",
+    "Name": "Krohnkite (flowrange)",
+    "Description": "Deferred focus-local splits for KWin ($REV)",
     "Icon": "dialog-tile-clones",
-
     "Authors": [
       {
         "Email": "esjeon@hyunmu.am",
         "Name": "Eon S. Jeon"
+      },
+      {
+        "Name": "flowrange",
+        "Email": "flowrange67@gmail.com"
       }
     ],
-    "Id": "krohnkite",
+    "Id": "krohnkite-flowrange",
     "Version": "$VER",
     "License": "MIT",
-    "Website": "https://github.com/anametologin/krohnkite#readme"
+    "Website": "https://codeberg.org/anametologin/Krohnkite"
   },
   "X-Plasma-API": "declarativescript",
   "X-Plasma-API-Minimum-Version": "6.0",
