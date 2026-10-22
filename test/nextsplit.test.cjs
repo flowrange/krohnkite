@@ -7,7 +7,7 @@ const A=tile('A',new Rect(32,56,584,800));
 const B=tile('B',new Rect(648,56,584,800));
 const C=tile('C',new Rect(0,0,100,100));
 const state=new NextSplitState();let ctx={currentWindow:A};
-state.remember([A,B],area);
+state.remember([A,B],area,gap);
 const before=JSON.stringify([A.geometry,B.geometry]);
 state.request('A','y');
 assert.equal(JSON.stringify([A.geometry,B.geometry]),before,'arming must not move windows');

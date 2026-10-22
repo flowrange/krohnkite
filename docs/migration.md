@@ -24,6 +24,10 @@ The fork preserves the existing shortcut action IDs. Existing KWin assignments
 and helpers that invoke those actions can continue to use them. Avoid running
 both variants simultaneously. No automatic configuration migration is performed.
 
+For `Meta+E` to toggle the current split, assign it to **Krohnkite: Toggle Current
+Split** in KDE's shortcuts settings. If it was previously assigned to
+**Krohnkite: Tile Layout**, remove that assignment first.
+
 To roll back, disable the fork and re-enable the original script. If required,
 restore the backed-up original package and settings, then log out and back in.
 The split tree itself is transient and cannot be restored from `kwinrc`.

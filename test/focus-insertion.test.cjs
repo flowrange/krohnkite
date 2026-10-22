@@ -10,7 +10,7 @@ test('shortcut focus becomes the anchor for the next unarmed window', () => {
   const tile = id => ({ id, geometry: area.clone(), window: { window: { id } } });
   const [a, b, c, d] = ['A', 'B', 'C', 'D'].map(tile);
   const state = new NextSplitState();
-  state.remember([a], area);
+  state.remember([a], area, gap);
   state.request('A', 'y'); state.created('B');
   state.apply({ currentWindow: a }, [a, b], area, gap);
   state.request('B', 'y'); state.created('C');

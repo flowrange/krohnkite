@@ -13,12 +13,13 @@ interface SplitBranch {
 interface SplitSnapshot { id: string; geometry: Rect; }
 
 // Local addition to Krohnkite (MIT): deferred, focus-local window insertion.
-// Existing Tile layout is untouched until an explicitly requested split arrives.
+// Existing Tile layout is retained until a local split or orientation toggle.
 class NextSplitState {
   root: SplitNode | null = null;
   pending: { target: string; axis: SplitAxis; incoming: string | null } | null = null;
   last: SplitSnapshot[] = [];
   lastArea: Rect | null = null;
+  lastGap = 0;
   lastOrder: string[] = [];
   lastFocused: string | null = null;
   contains(node: SplitNode | null, id: string): boolean {
@@ -32,10 +33,29 @@ class NextSplitState {
     if (this.pending && !this.pending.incoming && id !== this.pending.target)
       this.pending.incoming = id;
   }
-  remember(tiles: WindowClass[], area: Rect) {
+  remember(tiles: WindowClass[], area: Rect, gap: number) {
     this.last = tiles.map(w => ({id: w.id, geometry: w.geometry.clone()}));
     this.lastArea = area.clone();
+    this.lastGap = gap;
     this.lastOrder = tiles.map(w => w.id);
+  }
+  // Toggle the closest split visible around the focused leaf. The visible view
+  // collapses hidden siblings, while source points back to the persistent tree.
+  toggle(id: string): boolean {
+    if (!this.lastArea || this.last.length < 2 ||
+        !this.last.some(w => w.id === id)) return false;
+    if (!this.root) this.root = this.seed(this.last, this.lastArea, this.lastGap);
+    const tree = this.view(this.root, new Set(this.lastOrder));
+    const parent = (node: SplitNode | null): SplitBranch | null => {
+      if (!node || "id" in node) return null;
+      if (this.contains(node.a, id)) return parent(node.a) || node;
+      if (this.contains(node.b, id)) return parent(node.b) || node;
+      return null;
+    };
+    const split = parent(tree);
+    if (!split || !split.source) return false;
+    split.source.axis = split.axis === "x" ? "y" : "x";
+    return true;
   }
   // Recover the current guillotine layout, including its resized proportions.
   seed(entries: SplitSnapshot[], area: Rect, gap: number): SplitNode | null {
@@ -140,7 +160,7 @@ class NextSplitState {
     }
     tiles.forEach(w => { w.state = WindowState.Tiled; });
     this.render(this.view(this.root, visible), area, new Map<string, WindowClass>(tiles.map(w => [w.id, w] as [string, WindowClass])), gap);
-    this.remember(tiles, area);
+    this.remember(tiles, area, gap);
     return true;
   }
   adjust(area: Rect, tiles: WindowClass[], basis: WindowClass, delta: RectDelta, gap: number) {

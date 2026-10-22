@@ -3,6 +3,13 @@ import org.kde.kwin;
 
 Item {
     id: dbus;
+    function getToggleSplit() { return toggleSplit; }
+    ShortcutHandler {
+        id: toggleSplit;
+        name: "KrohnkiteToggleSplit";
+        text: "Krohnkite: Toggle Current Split";
+        sequence: "Meta+E";
+    }
     function getSplitRight() { return splitRight; }
     function getSplitBelow() { return splitBelow; }
     ShortcutHandler {

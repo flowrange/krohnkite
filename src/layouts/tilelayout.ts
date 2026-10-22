@@ -96,7 +96,7 @@ class TileLayout implements ILayout {
     this.parts.apply(area, tileables, gap).forEach((geometry, i) => {
       tileables[i].geometry = geometry;
     });
-    this.nextSplit.remember(tileables, area);
+    this.nextSplit.remember(tileables, area, gap);
   }
 
   public clone(): ILayout {

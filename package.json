@@ -1,6 +1,6 @@
 {
   "name": "krohnkite-flowrange",
-  "version": "0.9.9.2-flowrange.1",
+  "version": "0.9.9.2-flowrange.2",
   "description": "Krohnkite with deferred focus-local splits for an i3-style Plasma workflow",
   "main": "krohnkite.js",
   "directories": {

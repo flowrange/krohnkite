@@ -5,6 +5,9 @@ the dynamic tiling script for KWin.
 
 ## What changed
 
+- **Toggle the current split.** In Tile mode, `Meta+E` switches the split around
+  the focused window between side-by-side and top-to-bottom. Other splits stay
+  in place; pressing it again restores the previous orientation and proportions.
 - **Choose the next split.** In Tile mode, `Meta+B` places the next tiled window
   below the selected window; `Meta+V` places it to the right. Existing windows
   stay in place until the new window opens.

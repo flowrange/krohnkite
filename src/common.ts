@@ -76,6 +76,7 @@ const ShortcutsKeys = Object.keys(Shortcut);
 interface IShortcuts {
   getSplitRight(): ShortcutHandler;
   getSplitBelow(): ShortcutHandler;
+  getToggleSplit(): ShortcutHandler;
   getToggleDock(): ShortcutHandler;
 
   getFocusNext(): ShortcutHandler;

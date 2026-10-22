@@ -194,6 +194,12 @@ class KWinDriver implements IDriverContext {
     });
     this.shortcuts.getSplitRight().activated.connect(prepareSplit("x"));
     this.shortcuts.getSplitBelow().activated.connect(prepareSplit("y"));
+    this.shortcuts.getToggleSplit().activated.connect(() => this.enter(() => {
+      const window = this.currentWindow;
+      const layout = this.engine.layouts.getCurrentLayout(this.currentSurface);
+      if (!window || !window.tileable || !(layout instanceof TileLayout)) return;
+      if (layout.nextSplit.toggle(window.id)) this.engine.arrange(this);
+    }));
 
     const callbackShortcut = (shortcut: Shortcut) => {
       return () => {
