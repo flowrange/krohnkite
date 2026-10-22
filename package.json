@@ -18,6 +18,13 @@
   },
   "author": "Eon S. Jeon <esjeon@hyunmu.am>",
   "license": "MIT",
-  "homepage": "https://codeberg.org/anametologin/Krohnkite",
-  "private": true
+  "homepage": "https://github.com/flowrange/krohnkite#readme",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flowrange/krohnkite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flowrange/krohnkite/issues"
+  }
 }

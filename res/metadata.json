@@ -17,7 +17,7 @@
     "Id": "krohnkite-flowrange",
     "Version": "$VER",
     "License": "MIT",
-    "Website": "https://codeberg.org/anametologin/Krohnkite"
+    "Website": "https://github.com/flowrange/krohnkite"
   },
   "X-Plasma-API": "declarativescript",
   "X-Plasma-API-Minimum-Version": "6.0",
