@@ -3,6 +3,20 @@ import org.kde.kwin;
 
 Item {
     id: dbus;
+    function getSplitRight() { return splitRight; }
+    function getSplitBelow() { return splitBelow; }
+    ShortcutHandler {
+        id: splitRight;
+        name: "FlorentNextSplitRight";
+        text: "Prochaine fenêtre : à droite";
+        sequence: "Meta+V";
+    }
+    ShortcutHandler {
+        id: splitBelow;
+        name: "FlorentNextSplitBelow";
+        text: "Prochaine fenêtre : en dessous";
+        sequence: "Meta+B";
+    }
     function getToggleDock() {
         return toggleDock;
     }

@@ -113,6 +113,13 @@ class LayoutStoreEntry {
     return targetLayout;
   }
 
+  public removeWindow(id: string): void {
+    for (const key of Object.keys(this.layouts)) {
+      const layout = this.layouts[key];
+      if (layout instanceof TileLayout) layout.nextSplit.remove(id);
+    }
+  }
+
   private updateCurrentIndex(): void {
     const idx = CONFIG.layoutOrder.indexOf(this.currentID);
     this.currentIndex = idx === -1 ? null : idx;
@@ -146,6 +153,10 @@ class LayoutStore {
   public setLayout(srf: ISurface, layoutClassID: string): ILayout | null {
     if (srf.ignore) return null;
     return this.getEntry(srf).setLayout(layoutClassID);
+  }
+
+  public removeWindow(id: string): void {
+    for (const key of Object.keys(this.store)) this.store[key].removeWindow(id);
   }
 
   private getEntry(srf: ISurface): LayoutStoreEntry {

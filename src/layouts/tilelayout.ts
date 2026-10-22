@@ -24,6 +24,7 @@ class TileLayout implements ILayout {
   public static readonly id = "TileLayout";
 
   public readonly classID = TileLayout.id;
+  public readonly nextSplit = new NextSplitState();
 
   public get description(): string {
     return "Tile [" + this.numMaster + "]";
@@ -79,7 +80,8 @@ class TileLayout implements ILayout {
     delta: RectDelta,
     gap: number
   ) {
-    this.parts.adjust(area, tiles, basis, delta, gap);
+    if (this.nextSplit.root) this.nextSplit.adjust(area, tiles, basis, delta, gap);
+    else this.parts.adjust(area, tiles, basis, delta, gap);
   }
 
   public apply(
@@ -88,11 +90,13 @@ class TileLayout implements ILayout {
     area: Rect,
     gap: number
   ): void {
+    if (this.nextSplit.apply(ctx, tileables, area, gap)) return;
     tileables.forEach((tileable) => (tileable.state = WindowState.Tiled));
 
     this.parts.apply(area, tileables, gap).forEach((geometry, i) => {
       tileables[i].geometry = geometry;
     });
+    this.nextSplit.remember(tileables, area);
   }
 
   public clone(): ILayout {

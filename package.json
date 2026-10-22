@@ -10,7 +10,8 @@
     "typescript": "^5.4.5"
   },
   "scripts": {
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "test": "npm run tsc -- --noEmitOnError && node --test test/*.test.cjs"
   },
   "repository": {
     "type": "git",

@@ -49,6 +49,11 @@ class TilingController {
 
   public onWindowAdded(ctx: IDriverContext, window: WindowClass): void {
     this.engine.manage(window);
+    // Undecided windows are not tileable yet; arrange() sets their final state.
+    if (!window.shouldIgnore && !window.shouldFloat && window.state !== WindowState.Docked) {
+      const layout = this.engine.layouts.getCurrentLayout(window.surface);
+      if (layout instanceof TileLayout) layout.nextSplit.created(window.id);
+    }
 
     /* move window to next surface if the current surface is "full" */
     if (window.tileable) {
@@ -79,6 +84,7 @@ class TilingController {
   }
   public onWindowRemoved(ctx: IDriverContext, window: WindowClass): void {
     this.engine.unmanage(window);
+    this.engine.layouts.removeWindow(window.id);
     this.engine.arrange(ctx);
   }
 
@@ -236,6 +242,8 @@ class TilingController {
 
   public onWindowFocused(ctx: IDriverContext, window: WindowClass) {
     window.timestamp = new Date().getTime();
+    const layout = this.engine.layouts.getCurrentLayout(window.surface);
+    if (layout instanceof TileLayout) layout.nextSplit.lastFocused = window.id;
   }
   public onDesktopsChanged(ctx: IDriverContext, window: WindowClass) {
     if (window.state !== WindowState.Docked)

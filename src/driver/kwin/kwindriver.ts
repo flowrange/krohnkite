@@ -177,6 +177,21 @@ class KWinDriver implements IDriverContext {
   //#endregion
 
   private bindShortcut() {
+    const prepareSplit = (axis: SplitAxis) => () => this.enter(() => {
+      const window = this.currentWindow;
+      const layout = this.engine.layouts.getCurrentLayout(this.currentSurface);
+      if (!window || !window.tileable || !(layout instanceof TileLayout)) {
+        this.showNotification("Séparation : sélectionner une fenêtre en mode Tile");
+        return;
+      }
+      layout.nextSplit.request(window.id, axis);
+      this.showNotification(axis === "x"
+        ? "Prochaine fenêtre → à droite"
+        : "Prochaine fenêtre ↓ en dessous");
+    });
+    this.shortcuts.getSplitRight().activated.connect(prepareSplit("x"));
+    this.shortcuts.getSplitBelow().activated.connect(prepareSplit("y"));
+
     const callbackShortcut = (shortcut: Shortcut) => {
       return () => {
         LOG?.send(
