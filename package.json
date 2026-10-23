@@ -1,7 +1,7 @@
 {
   "name": "krohnkite-flowrange",
-  "version": "0.9.9.2-flowrange.2",
-  "description": "Krohnkite with deferred focus-local splits for an i3-style Plasma workflow",
+  "version": "0.9.9.2-flowrange.5",
+  "description": "Krohnkite with focus-local splits and a dedicated Zen desktop for Plasma",
   "main": "krohnkite.js",
   "directories": {
     "test": "test"

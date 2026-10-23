@@ -2,7 +2,7 @@
   "KPackageStructure": "KWin/Script",
   "KPlugin": {
     "Name": "Krohnkite (flowrange)",
-    "Description": "Deferred focus-local splits for KWin ($REV)",
+    "Description": "Focus-local splits and a dedicated Zen desktop for KWin ($REV)",
     "Icon": "dialog-tile-clones",
     "Authors": [
       {

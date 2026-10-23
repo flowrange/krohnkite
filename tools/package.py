@@ -25,6 +25,7 @@ files = {
     'res/config.xml': 'contents/config/main.xml',
     'LICENSE': 'LICENSE',
     'README.md': 'README.md',
+    'img/zen-mode.png': 'img/zen-mode.png',
 }
 for source, target in files.items():
     destination = stage / target
