@@ -39,3 +39,24 @@ coauthor. Sign with a key explicitly selected by the owner. For GitHub to verify
 an SSH signature, that public key must be registered on the account as a signing
 key. Authentication keys and signing keys are separate registrations.
 Keep private keys in the agent or owner's vault, never in this repository.
+
+## Zen lifecycle
+
+`KWinZen` owns an independent `ZenSpace` for navigation and an optional
+`ZenSession` for the parked window. Releasing a window keeps the empty desktop;
+only `dispose()` removes it.
+`WindowClass.zen` suspends tiling without replacing its saved tiling state.
+Panels and sticky applications are assigned to other desktops while Zen is
+visible; desktop wallpaper windows are left unchanged;
+Plasma panel settings are never rewritten. Leaving via any desktop/activity
+shortcut restores these assignments. QML destruction calls `dispose()` to
+restore the window and shell before unloading. State is intentionally scoped
+to the running KWin script, not persisted across logouts.
+
+`npm test` covers deleted desktops, activities, sticky windows, screen origins,
+size limits and native window state restoration. `npm run test:kwin` also starts
+a disposable Plasma shell to exercise real panels, focus, geometry, closing and
+script unloading. It requires `plasmashell` as well as the dependencies checked
+by the runner. Every test runs in private D-Bus and XDG directories.
+
+API reference: https://develop.kde.org/docs/plasma/kwin/api/
