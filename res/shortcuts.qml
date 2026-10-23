@@ -3,6 +3,20 @@ import org.kde.kwin;
 
 Item {
     id: dbus;
+    function getZenToggle() { return zenToggle; }
+    function getZenRelease() { return zenRelease; }
+    ShortcutHandler {
+        id: zenToggle;
+        name: "KrohnkiteZenToggle";
+        text: "Krohnkite: Aller-retour Zen";
+        sequence: "Meta+U";
+    }
+    ShortcutHandler {
+        id: zenRelease;
+        name: "KrohnkiteZenRelease";
+        text: "Krohnkite: Envoyer / retirer la fenêtre Zen";
+        sequence: "Meta+Shift+U";
+    }
     function getToggleSplit() { return toggleSplit; }
     ShortcutHandler {
         id: toggleSplit;

@@ -34,6 +34,7 @@ enum WindowState {
   Undecided,
   Dragging,
   Docked,
+  Zen,
 }
 
 class WindowClass {
@@ -97,7 +98,10 @@ class WindowClass {
    * Avoid comparing this value directly, and use `tileable`, `tiled`,
    * `floating` as much as possible.
    */
+  public zen = false;
+
   public get state(): WindowState {
+    if (this.zen) return WindowState.Zen;
     /* external states override the internal state. */
     if (this.window.fullScreen) return WindowState.NativeFullscreen;
     if (this.window.maximized) return WindowState.NativeMaximized;
@@ -106,6 +110,7 @@ class WindowClass {
   }
 
   public set state(value: WindowState) {
+    if (this.zen) return;
     const state = this.state;
 
     /* cannot transit to the current state */

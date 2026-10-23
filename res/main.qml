@@ -28,6 +28,8 @@ import "../code/script.js" as K
 
 Item {
     id: scriptRoot
+    property var driver: null
+    Component.onDestruction: { if (driver) driver.dispose(); }
 
     TaskManager.ActivityInfo {
         id: activityInfo
@@ -52,7 +54,8 @@ Item {
             "shortcuts": shortcutsLoader.item
         };
 
-        (new K.KWinDriver(api)).main();
+        driver = new K.KWinDriver(api);
+        driver.main();
     }
     Loader {
         id: shortcutsLoader;

@@ -104,6 +104,7 @@ class KWinDriver implements IDriverContext {
   private control: TilingController;
   private windowMap: WrapperMap<Window, WindowClass>;
   private entered: boolean;
+  private zen: KWinZen;
 
   constructor(api: Api) {
     KWIN = api.kwin;
@@ -117,6 +118,11 @@ class KWinDriver implements IDriverContext {
         new WindowClass(new KWinWindow(client, this.workspace))
     );
     this.entered = false;
+    this.zen = new KWinZen(this.workspace, () => this.engine.arrange(this), client => {
+      this.workspace.activeWindow = client;
+      const window = this.windowMap.get(client);
+      if (window) this.control.onWindowFocused(this, window);
+    });
   }
 
   /*
@@ -179,7 +185,13 @@ class KWinDriver implements IDriverContext {
   }
   //#endregion
 
+  public dispose() {
+    this.enter(() => this.zen.dispose());
+  }
+
   private bindShortcut() {
+    this.shortcuts.getZenToggle().activated.connect(() => this.enter(() => this.zen.toggle()));
+    this.shortcuts.getZenRelease().activated.connect(() => this.enter(() => this.zen.transfer(this.currentWindow)));
     const prepareSplit = (axis: SplitAxis) => () => this.enter(() => {
       const window = this.currentWindow;
       const layout = this.engine.layouts.getCurrentLayout(this.currentSurface);
@@ -378,11 +390,15 @@ class KWinDriver implements IDriverContext {
   private bindEvents() {
     this.connect(this.workspace.screensChanged, () => {
       LOG?.send(LogModules.screensChanged, "eventFired");
+      this.zen.surfaceChanged();
+      this.zen.center();
       this.control.onSurfaceUpdate(this);
     });
 
     this.connect(this.workspace.virtualScreenGeometryChanged, () => {
       LOG?.send(LogModules.virtualScreenGeometryChanged, "eventFired");
+      this.zen.surfaceChanged();
+      this.zen.center();
       this.control.onSurfaceUpdate(this);
     });
 
@@ -394,6 +410,7 @@ class KWinDriver implements IDriverContext {
           "eventFired",
           `Activity ID:${activityId}`
         );
+        this.zen.surfaceChanged();
         this.control.onCurrentActivityChanged(this);
       }
     );
@@ -406,9 +423,12 @@ class KWinDriver implements IDriverContext {
           "eventFired",
           `Virtual Desktop. name:${virtualDesktop.name}, id:${virtualDesktop.id}`
         );
+        this.zen.surfaceChanged();
         this.control.onSurfaceUpdate(this);
       }
     );
+
+    this.connect(this.workspace.desktopsChanged, () => this.zen.surfaceChanged());
 
     this.connect(this.workspace.windowAdded, (client: Window) => {
       if (!client) return;
@@ -418,6 +438,7 @@ class KWinDriver implements IDriverContext {
         `window: caption:${client.caption} internalID:${client.internalId}`,
         { winClass: [`${client.resourceClass}`] }
       );
+      this.zen.added(client);
       const window = this.addWindow(client);
       if (client.active && window !== null)
         this.control.onWindowFocused(this, window);
@@ -438,6 +459,7 @@ class KWinDriver implements IDriverContext {
 
     this.connect(this.workspace.windowRemoved, (client: Window) => {
       if (!client) return;
+      this.zen.removed(client);
       LOG?.send(
         LogModules.windowRemoved,
         "eventFired",

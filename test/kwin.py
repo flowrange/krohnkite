@@ -11,12 +11,12 @@ import sys
 import tempfile
 
 root = Path(__file__).resolve().parents[1]
-for executable in ('dbus-run-session', 'kwin_wayland'):
+for executable in ('dbus-run-session', 'kwin_wayland', 'plasmashell'):
     if not shutil.which(executable):
         sys.exit('Missing integration-test dependency: ' + executable)
 # Fail explicitly if the desktop Python bindings are unavailable.
 subprocess.run([sys.executable, '-c', 'import dbus; from gi.repository import GLib; from PyQt6.QtWidgets import QApplication'], check=True)
-for scenario in ('splits', 'focus', 'toggle'):
+for scenario in (sys.argv[1:] or ('splits', 'focus', 'toggle', 'zen', 'zen-flameshot')):
     with tempfile.TemporaryDirectory(prefix='krohnkite-test-') as directory:
         work = Path(directory)
         env = os.environ.copy()
@@ -60,7 +60,7 @@ soleWindowNoGaps=false
                 raise RuntimeError('KWin integration scenario timed out: ' + scenario)
         result = work / 'result.json'
         checks = json.loads(result.read_text()) if result.exists() else []
-        expected = {'splits': 10, 'focus': 3, 'toggle': 10}[scenario]
+        expected = {'splits': 10, 'focus': 3, 'toggle': 10, 'zen': 21, 'zen-flameshot': 7}[scenario]
         if process.returncode or len(checks) != expected or not all(c['pass'] for c in checks):
             print((work / 'kwin.log').read_text()[-16000:])
             sys.exit('FAIL: ' + scenario)

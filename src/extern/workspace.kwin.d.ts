@@ -1,5 +1,5 @@
 interface Workspace {
-  readonly desktops: Output[];
+  readonly desktops: VirtualDesktop[];
   readonly desktopGridSize: QSize;
   readonly desktopGridWidth: number;
   readonly desktopGridHeight: number;

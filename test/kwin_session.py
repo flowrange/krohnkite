@@ -44,6 +44,11 @@ def js(code=''):
 callDBus("org.flowrange.SplitProbe", "/Probe", "org.flowrange.SplitProbe", "Report",
   JSON.stringify(workspace.windowList().filter(w => w.caption.startsWith("Split test "))
     .map(w => ({ name: w.caption.slice(11), active: workspace.activeWindow === w,
+      desktops: w.desktops.map(d => d.id), current: workspace.currentDesktop.id,
+      desktopCount: workspace.desktops.length, noBorder: w.noBorder,
+      shell: workspace.windowList().filter(p => p.dock || p.desktopWindow).map(p => ({
+        dock: p.dock, desktops: p.desktops.map(d => d.id),
+        visible: p.desktops.length === 0 || p.desktops.indexOf(workspace.currentDesktop) >= 0 })),
       g: { x: w.frameGeometry.x, y: w.frameGeometry.y,
            width: w.frameGeometry.width, height: w.frameGeometry.height } }))));
 ''')
@@ -66,13 +71,15 @@ def action(label):
     pump(.3)
 
 
-def launch(label, floating=False):
+def launch(label, floating=False, app_id=None):
     code = '''from PyQt6.QtWidgets import QApplication, QWidget
 from PyQt6.QtGui import QGuiApplication
 import sys
 app = QApplication(sys.argv)
 '''
-    if floating:
+    if app_id:
+        code += 'QGuiApplication.setDesktopFileName(' + repr(app_id) + ')\n'
+    elif floating:
         code += 'QGuiApplication.setDesktopFileName("floating_terminal")\n'
     code += 'w = QWidget()\nw.setWindowTitle(' + repr('Split test ' + label) + ')\nw.resize(400, 300)\nw.show()\napp.exec()\n'
     app = subprocess.Popen([sys.executable, '-c', code])
@@ -143,6 +150,75 @@ try:
         check('toggle ignores Monocle layout', all(same(monocle[k]['g'], after[k]['g']) for k in monocle))
         action('KrohnkiteMonocleLayout'); after = js()
         check('returning from Monocle keeps the toggled tree', all(same(before[k]['g'], after[k]['g']) for k in before))
+    elif scenario == 'zen':
+        shell = subprocess.Popen(['plasmashell'])
+        apps.append(shell)
+        pump(4)
+        launch('A'); launch('B'); focus('A'); action('FlorentNextSplitBelow'); launch('C'); before = focus('B')
+        origin = before['B']['current']; count = before['B']['desktopCount']
+        check('real Plasma panel is available for integration test', any(p['dock'] for p in before['B']['shell']))
+        action('KrohnkiteZenToggle'); empty = js(); zen = empty['B']['current']
+        check('Meta+U creates an empty Zen desktop without moving any windows', zen != origin and all(empty[k]['desktops'] == before[k]['desktops'] for k in before))
+        check('empty Zen hides panels and retains wallpaper', any(not p['dock'] for p in empty['B']['shell']) and all(p['visible'] == (not p['dock']) for p in empty['B']['shell']))
+        action('KrohnkiteZenToggle'); after = js()
+        check('empty Zen return restores exact focus and geometry', after['B']['active'] and after['B']['current'] == origin and all(same(before[k]['g'], after[k]['g']) for k in before))
+        action('KrohnkiteZenRelease'); after = js()
+        check('Meta+Shift+U moves B to the existing Zen desktop', zen != origin and after['B']['desktops'] == [zen] and after['B']['desktopCount'] == count + 1)
+        check('Zen centers a compact borderless window', same(after['B']['g'], dict(x=320, y=150, width=640, height=600)) and after['B']['noBorder'])
+        check('occupied Zen hides real panels and retains wallpaper', all(p['visible'] == (not p['dock']) for p in after['B']['shell']))
+        check('Zen keeps B focused', after['B']['active'])
+        action('KrohnkiteZenToggle'); after = js()
+        check('return restores original desktop and remaining window focus', after['C']['current'] == origin and after['C']['active'])
+        check('return restores shell assignments exactly', after['A']['shell'] == before['A']['shell'])
+        action('KrohnkiteZenToggle'); after = js()
+        check('second visit reuses the same desktop and window', after['B']['current'] == zen and after['B']['active'] and after['B']['desktopCount'] == count + 1)
+        js('workspace.currentDesktop = workspace.desktops.find(d => d.id === ' + json.dumps(origin) + ');')
+        after = js()
+        check('manual desktop exit also restores panels', after['A']['shell'] == before['A']['shell'])
+        focus('A'); action('KrohnkiteZenToggle'); action('KrohnkiteZenRelease'); after = js()
+        check('release restores B to its original desktop and focus', after['B']['current'] == origin and after['B']['desktops'] == [origin] and after['B']['active'])
+        check('release keeps empty Zen available and restores split geometry', after['B']['desktopCount'] == count + 1 and all(same(before[k]['g'], after[k]['g']) for k in before))
+        floating = launch('Float', True); before_float = focus('Float')
+        action('KrohnkiteZenRelease'); action('KrohnkiteZenRelease'); after = js()
+        check('release restores floating geometry and borders', same(before_float['Float']['g'], after['Float']['g']) and before_float['Float']['noBorder'] == after['Float']['noBorder'])
+        focus('Float'); action('KrohnkiteZenRelease'); floating.terminate(); floating.wait(timeout=5); pump(.5); after = js()
+        check('closing Zen window restores desktop panels and leaves empty Zen', after['A']['current'] == origin and after['A']['desktopCount'] == count + 1 and all(p['visible'] for p in after['A']['shell']))
+        focus('B'); action('KrohnkiteZenRelease')
+        js('workspace.createDesktop(workspace.desktops.length, "Third"); workspace.currentDesktop = workspace.desktops[workspace.desktops.length - 1];')
+        third = launch('Third'); focus('Third'); third_id = js()['Third']['current']
+        action('KrohnkiteZenToggle'); action('KrohnkiteZenToggle'); after = js()
+        check('visiting Zen from another desktop returns there with exact focus', after['Third']['current'] == third_id and after['Third']['active'])
+        action('KrohnkiteZenToggle'); action('KrohnkiteZenRelease'); after = js()
+        check('release still returns to original desktop after other visits', after['B']['current'] == origin and after['B']['desktops'] == [origin])
+        action('KrohnkiteZenRelease'); launch('New'); after = js()
+        check('new unrelated windows do not occupy Zen', after['New']['desktops'] == [origin])
+        focus('B')
+        bus.call_blocking('org.kde.KWin', '/Scripting', 'org.kde.kwin.Scripting', 'unloadScript', 's', ('krohnkite-flowrange',))
+        pump(.5); after = js()
+        check('unloading script restores parked window and removes Zen', after['B']['desktops'] == [origin] and after['B']['current'] == origin and after['B']['desktopCount'] == count + 1)
+        check('unloading script restores real Plasma panels', all(p['visible'] for p in after['B']['shell']))
+    elif scenario == 'zen-flameshot':
+        launch('A'); before = focus('A'); origin = before['A']['current']
+        action('KrohnkiteZenToggle'); zen = js()['A']['current']
+        for identity in ('flameshot', 'org.flameshot.Flameshot'):
+            capture = launch('Capture', app_id=identity); after = js()
+            check(identity + ' capture stays on empty Zen desktop', after['Capture']['desktops'] == [zen] and after['Capture']['current'] == zen and after['Capture']['active'])
+            # Simulate an overlay made sticky by the capture application.
+            js('workspace.windowList().find(w => w.caption === "Split test Capture").desktops = [];')
+            action('KrohnkiteZenToggle'); action('KrohnkiteZenToggle'); after = js()
+            check(identity + ' sticky capture remains visible in Zen', after['Capture']['desktops'] == [] and after['Capture']['current'] == zen)
+            capture.terminate(); capture.wait(timeout=5); pump(.3)
+        action('KrohnkiteZenToggle'); focus('A'); action('KrohnkiteZenRelease')
+        capture = launch('Capture', app_id='flameshot'); after = js()
+        check('capture remains visible alongside the parked Zen window', after['Capture']['desktops'] == [zen] and after['A']['desktops'] == [zen] and after['Capture']['active'])
+        capture.terminate(); capture.wait(timeout=5); pump(.3)
+        launch('Unrelated'); after = js()
+        check('ordinary new windows still go to the return desktop', after['Unrelated']['desktops'] == [origin])
+        focus('A'); action('KrohnkiteZenRelease'); after = js()
+        check('capture exception preserves original window restoration', after['A']['desktops'] == [origin] and after['A']['active'])
+        # Dispose the script while the compositor and its desktops are alive.
+        bus.call_blocking('org.kde.KWin', '/Scripting', 'org.kde.kwin.Scripting', 'unloadScript', 's', ('krohnkite-flowrange',))
+        pump(.4)
     elif scenario == 'focus':
         launch('A'); focus('A'); action('FlorentNextSplitBelow'); launch('B')
         focus('B'); action('FlorentNextSplitBelow'); launch('C'); focus('C')
